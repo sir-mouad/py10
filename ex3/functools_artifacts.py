@@ -1,5 +1,6 @@
-from functools import reduce, partial
+from functools import reduce, partial, lru_cache, singledispatch
 import operator
+from typing import Any
 
 
 def spell_reducer(spells: list[int], operation: str) -> int:
@@ -13,16 +14,44 @@ def spell_reducer(spells: list[int], operation: str) -> int:
         return reduce(min, spells)
 
 
-def partial_enchanter(base_enchantment: callable) -> dict[str, callable]:
-    pass
+def partial_enchanter(base_enchantment) -> dict[str, callable]:
+    return {
+        "fire_enchant": partial(base_enchantment, 50, "fire"),
+        "ice_enchant": partial(base_enchantment, 50, "ice"),
+        "lightning_enchant": partial(base_enchantment, 50, "lightning"),
+    }
 
 
+def base_enchantment(power: int, element: str, target: str) -> str:
+    return f"{element} enchantment with {power} power on {target}"
+
+
+@lru_cache(maxsize=None)
 def memoized_fibonacci(n: int) -> int:
-    pass
+    if n == 0:
+        return 0
+    if n == 1:
+        return 1
+    return memoized_fibonacci(n-1) + memoized_fibonacci(n-2)
 
 
 def spell_dispatcher() -> callable:
-    pass
+    @singledispatch
+    def spell_system(target: Any) -> str:
+        return f"Cannot cast spell on {target} of unknown type."
+
+    @spell_system.register
+    def _(damage: int) -> str:
+        return f"Damage spell for {damage} points!"
+
+    @spell_system.register
+    def _(enchantment: str) -> str:
+        return f"Enchantment spell: {enchantment} cast!"
+
+    @spell_system.register(list)
+    def _(multi_cast: list[Any]) -> list[str]:
+        return [spell_system(t) for t in multi_cast]
+    return spell_system
 
 
 if __name__ == "__main__":
@@ -34,3 +63,6 @@ if __name__ == "__main__":
     print("Sum:", sum_num)
     print("Product:", mul_num)
     print("Max:", max_num)
+    print("\nTesting memoized fibonacci...")
+    print(f"Fib(10): {memoized_fibonacci(10)}")
+    print(f"Fib(15): {memoized_fibonacci(15)}")

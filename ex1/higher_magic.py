@@ -48,7 +48,7 @@ if __name__ == "__main__":
     print("")
     print("\nTesting power amplifier...")
 
-    def fireball():
+    def fireball() -> int:
         return 10
     Original = fireball()
     mega_fireball = power_amplifier(fireball, 3)
